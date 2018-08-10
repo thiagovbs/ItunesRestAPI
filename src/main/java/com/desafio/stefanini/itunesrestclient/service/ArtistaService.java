@@ -2,6 +2,7 @@ package com.desafio.stefanini.itunesrestclient.service;
 
 import com.desafio.stefanini.itunesrestclient.model.Artista;
 import com.desafio.stefanini.itunesrestclient.repository.ArtistaRepository;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +12,11 @@ import org.springframework.stereotype.Service;
 public class ArtistaService
 {
 
-    public ArtistaService()
-    {
+    public ArtistaService(){
+    	
     }
-
+    
+    
     public List<Artista> getArtista(String artista)
     {
         return artistaRepository.findByArtistName(artista);

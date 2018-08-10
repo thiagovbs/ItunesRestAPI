@@ -4,6 +4,10 @@ import com.desafio.stefanini.itunesrestclient.model.Artista;
 import com.desafio.stefanini.itunesrestclient.model.ArtistsReturn;
 import com.desafio.stefanini.itunesrestclient.service.ArtistaService;
 import com.google.gson.Gson;
+
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+
 @RestController
 @RequestMapping(value={"/artista"})
 public class ArtistaController
@@ -28,6 +33,24 @@ public class ArtistaController
     {
     }
 
+    
+	@ApiOperation(
+			value="Listar artistas, albuns e musicas", 
+			response=Artista.class, 
+			notes="Essa operação lista artistas, albuns e músicas")
+	@ApiResponses(value= {
+			@ApiResponse(
+					code=200, 
+					message="Retorna um ResponseEntity com uma mensagem de sucesso",
+					response=Artista.class
+					),
+			@ApiResponse(
+					code=500, 
+					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
+					response=Artista.class
+					)
+ 
+	})    
     @GetMapping(value={"/listar"})
     public ResponseEntity<?> listar(@RequestParam(value="artista", defaultValue="") String artista, @RequestParam(value="album", defaultValue="") String album, @RequestParam(value="musica", defaultValue="") String musica)
     {
@@ -47,6 +70,23 @@ public class ArtistaController
         }
     }
 
+	@ApiOperation(
+			value="Insere um artista na base de dados", 
+			response=Artista.class, 
+			notes="Essa operação insere informações de um artista")
+	@ApiResponses(value= {
+			@ApiResponse(
+					code=200, 
+					message="Retorna um ResponseEntity com uma mensagem de sucesso",
+					response=Artista.class
+					),
+			@ApiResponse(
+					code=500, 
+					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
+					response=Artista.class
+					)
+ 
+	})  	
     @PutMapping(value={"/inserir"})
     public ResponseEntity<?> inserir(@RequestBody Artista artista)
     {
@@ -61,6 +101,23 @@ public class ArtistaController
         }
     }
 
+	@ApiOperation(
+			value="Altera um artista na base de dados", 
+			response=Artista.class, 
+			notes="Essa operação altera informações de um artista")
+	@ApiResponses(value= {
+			@ApiResponse(
+					code=200, 
+					message="Retorna um ResponseEntity com uma mensagem de sucesso",
+					response=Artista.class
+					),
+			@ApiResponse(
+					code=500, 
+					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
+					response=Artista.class
+					)
+ 
+	}) 	
     @PostMapping(value={"/alterar"})
     public ResponseEntity<?> alterar(@RequestBody Artista artista)
     {
@@ -75,6 +132,23 @@ public class ArtistaController
         }
     }
 
+	@ApiOperation(
+			value="Apaga um artista na base de dados", 
+			response=Artista.class, 
+			notes="Essa operação apaga as informações de um artista")
+	@ApiResponses(value= {
+			@ApiResponse(
+					code=200, 
+					message="Retorna um ResponseEntity com uma mensagem de sucesso",
+					response=Artista.class
+					),
+			@ApiResponse(
+					code=500, 
+					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
+					response=Artista.class
+					)
+ 
+	}) 	
     @DeleteMapping(value={"/deletar"})
     public ResponseEntity<?> deletar(@RequestParam(value="id_artista", defaultValue="") Integer id_artista, @RequestParam(value="album", defaultValue="") String album, @RequestParam(value="id_musica", defaultValue="") Integer id_musica)
     {

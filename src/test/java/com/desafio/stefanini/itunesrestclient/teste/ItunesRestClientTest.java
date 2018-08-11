@@ -5,9 +5,12 @@ import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.delete;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
+
 
 import org.junit.Test;
+
+
 
 public class ItunesRestClientTest {
 	
@@ -24,21 +27,24 @@ public class ItunesRestClientTest {
 	public void listaMusicaValida() {
 		get("/ItunesRestClient/artista/listar?musica=Musica 1 do Thiago alterada").
 			then().
-			statusCode(200).body("trackId", equalTo("[111]"));
+			statusCode(200).body("[0].trackId", equalTo(111));
 	}
 	
 	@Test
 	public void listaArtistaValido() {
+		
 		get("/ItunesRestClient/artista/listar?artista=Thiago Veloso").
-			then().
-			statusCode(200).body("artistId", equalTo("[157]"));
+		then().
+		statusCode(200).body("[0].artistId", equalTo(157));
+		
+			
 	}
 	
 	@Test
 	public void listaAlbumValido() {
 		get("/ItunesRestClient/artista/listar?album=Thiago CD 1 alterado").
 			then().
-			statusCode(200).body("artistcollectionId", equalTo("[111]"));
+			statusCode(200).body("[0].artistcollectionId", equalTo(111));
 	}
 
 	@Test

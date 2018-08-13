@@ -1,7 +1,9 @@
 package com.desafio.stefanini.itunesrestclient.controller;
 
-import com.desafio.stefanini.itunesrestclient.model.Artista;
-import com.desafio.stefanini.itunesrestclient.model.ArtistsReturn;
+import com.desafio.stefanini.itunesrestclient.model.AlbumReturn;
+import com.desafio.stefanini.itunesrestclient.model.ArtistaReturn;
+import com.desafio.stefanini.itunesrestclient.model.MusicaReturn;
+import com.desafio.stefanini.itunesrestclient.model.Musica;
 import com.desafio.stefanini.itunesrestclient.service.ArtistaService;
 import com.google.gson.Gson;
 
@@ -36,30 +38,29 @@ public class ArtistaController
     
 	@ApiOperation(
 			value="Listar artistas, albuns e musicas", 
-			response=Artista.class, 
 			notes="Essa operação lista artistas, albuns e músicas")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
 					message="Retorna um ResponseEntity com uma mensagem de sucesso",
-					response=Artista.class
+					response=Musica.class
 					),
 			@ApiResponse(
-					code=500, 
+					code=400, 
 					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
-					response=Artista.class
+					response=Musica.class
 					)
  
 	})    
     @GetMapping(value={"/listar"})
     public ResponseEntity<?> listar(@RequestParam(value="artista", defaultValue="") String artista, @RequestParam(value="album", defaultValue="") String album, @RequestParam(value="musica", defaultValue="") String musica)
     {
-        List<Artista> a = artistaService.buscarArtistas(artista, album, musica);
+        List<Musica> a = artistaService.buscarArtistas(artista, album, musica);
         try
         {
             if(a.isEmpty())
             {
-                inclui_mysql(artista);
+                inclui_mysql(artista,album,musica);
                 a = artistaService.buscarArtistas(artista, album, musica);
             }
             return ResponseEntity.status(HttpStatus.OK).body(a);
@@ -72,23 +73,23 @@ public class ArtistaController
 
 	@ApiOperation(
 			value="Insere um artista na base de dados", 
-			response=Artista.class, 
+			response=Musica.class, 
 			notes="Essa operação insere informações de um artista")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
 					message="Retorna um ResponseEntity com uma mensagem de sucesso",
-					response=Artista.class
+					response=Musica.class
 					),
 			@ApiResponse(
-					code=500, 
+					code=400, 
 					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
-					response=Artista.class
+					response=Musica.class
 					)
  
 	})  	
     @PutMapping(value={"/inserir"})
-    public ResponseEntity<?> inserir(@RequestBody Artista artista)
+    public ResponseEntity<?> inserir(@RequestBody Musica artista)
     {
         try
         {
@@ -103,23 +104,23 @@ public class ArtistaController
 
 	@ApiOperation(
 			value="Altera um artista na base de dados", 
-			response=Artista.class, 
+			response=Musica.class, 
 			notes="Essa operação altera informações de um artista")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
 					message="Retorna um ResponseEntity com uma mensagem de sucesso",
-					response=Artista.class
+					response=Musica.class
 					),
 			@ApiResponse(
-					code=500, 
+					code=400, 
 					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
-					response=Artista.class
+					response=Musica.class
 					)
  
 	}) 	
     @PostMapping(value={"/alterar"})
-    public ResponseEntity<?> alterar(@RequestBody Artista artista)
+    public ResponseEntity<?> alterar(@RequestBody Musica artista)
     {
         try
         {
@@ -134,25 +135,24 @@ public class ArtistaController
 
 	@ApiOperation(
 			value="Apaga um artista na base de dados", 
-			response=Artista.class, 
 			notes="Essa operação apaga as informações de um artista")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
 					message="Retorna um ResponseEntity com uma mensagem de sucesso",
-					response=Artista.class
+					response=Musica.class
 					),
 			@ApiResponse(
-					code=500, 
+					code=400, 
 					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
-					response=Artista.class
+					response=Musica.class
 					)
  
 	}) 	
     @DeleteMapping(value={"/deletar"})
     public ResponseEntity<?> deletar(@RequestParam(value="id_artista", defaultValue="") Integer id_artista, @RequestParam(value="album", defaultValue="") String album, @RequestParam(value="id_musica", defaultValue="") Integer id_musica)
     {
-        Artista a;
+        Musica a;
         try
         {
             a = artistaService.buscarArtistaPorId(id_artista, album, id_musica);
@@ -164,37 +164,67 @@ public class ArtistaController
             return ResponseEntity.badRequest().body(e.getMessage());
         }
         artistaService.delArtista(a);
-        return ResponseEntity.status(HttpStatus.OK).body("Exclu\355do com sucesso");
+        return ResponseEntity.status(HttpStatus.OK).body("Excluído com sucesso");
     }
 
-    public void inclui_mysql(String artista)
+    public void inclui_mysql(String artista, String album, String musica)
     {
-        String retorno = pesquisaiTunes(artista, "", "");
-        Gson gson = new Gson();
-        ArtistsReturn artistas = (ArtistsReturn)gson.fromJson(retorno, ArtistsReturn.class);
+        MusicaReturn artistas = pesquisaiTunes(artista, album, musica);
       
-        for(Artista a: artistas.getResults()) {
-        	artistaService.addArtista(a);
+        for(Musica m: artistas.getResults()) {
+        	artistaService.addArtista(m);
         }	
 
     }
 
-    public String pesquisaiTunes(String artista, String album, String musica)
+    public MusicaReturn pesquisaiTunes(String artista, String album, String musica)
     {
+    	MusicaReturn a = new MusicaReturn();
+    	a.setResultCount(0);	
         try
         {
             RestTemplate restTemplate = new RestTemplate();
-            String result = (String)restTemplate.getForObject("https://itunes.apple.com/search?country=br&media=music&limit=200&entity=musicTrack&term="+artista, String.class);
-            return result;
+            String result = "";
+            Gson gson = new Gson();
+            if (!artista.equalsIgnoreCase("")){
+            	result = (String)restTemplate.getForObject(URL_ITUNES_ARTISTA+artista, String.class);
+            	ArtistaReturn ar = (ArtistaReturn)gson.fromJson(result, ArtistaReturn.class);
+            	if (ar.getResultCount() > 0) {
+            		result = (String)restTemplate.getForObject(URL_ITUNES_MUSICA+ar.getResults().get(0).getArtistName(), String.class);
+                	MusicaReturn artistas = (MusicaReturn)gson.fromJson(result, MusicaReturn.class);
+                	return artistas;
+            	}else {
+                	return a;
+                }	
+            }else if (!album.equalsIgnoreCase("")){	
+            	result = (String)restTemplate.getForObject(URL_ITUNES_ALBUM+album, String.class);
+            	AlbumReturn b = (AlbumReturn)gson.fromJson(result, AlbumReturn.class);
+            	if (b.getResultCount() > 0) {
+            		result = (String)restTemplate.getForObject(URL_ITUNES_MUSICA+b.getResults().get(0).getArtistName(), String.class);
+                	MusicaReturn artistas = (MusicaReturn)gson.fromJson(result, MusicaReturn.class);
+                	return artistas;
+            	}else {
+                	return a;
+                }	
+            }else if (!musica.equalsIgnoreCase("")){	
+            	result = (String)restTemplate.getForObject(URL_ITUNES_MUSICA+musica, String.class);
+            	MusicaReturn artistas = (MusicaReturn)gson.fromJson(result, MusicaReturn.class);
+            	return artistas;
+            }else {
+            	return a;
+            }
+            
         }
         catch(Exception e)
         {
             e.printStackTrace();
+            return a; 
         }
-        return null;
     }
 
-    static final String URL_ITUNES = "https://itunes.apple.com/search?country=br&media=music&limit=200&entity=musicTrack&term=";
+    static final String URL_ITUNES_ARTISTA = "https://itunes.apple.com/search?country=br&media=music&limit=200&entity=musicArtist&term=";
+    static final String URL_ITUNES_ALBUM = "https://itunes.apple.com/search?country=br&media=music&limit=200&entity=album&term=";
+    static final String URL_ITUNES_MUSICA = "https://itunes.apple.com/search?country=br&media=music&limit=200&entity=musicTrack&term=";
     @Autowired
     private ArtistaService artistaService;
 }

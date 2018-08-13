@@ -1,6 +1,6 @@
 package com.desafio.stefanini.itunesrestclient.service;
 
-import com.desafio.stefanini.itunesrestclient.model.Artista;
+import com.desafio.stefanini.itunesrestclient.model.Musica;
 import com.desafio.stefanini.itunesrestclient.repository.ArtistaRepository;
 
 import java.util.List;
@@ -17,39 +17,39 @@ public class ArtistaService
     }
     
     
-    public List<Artista> getArtista(String artista)
+    public List<Musica> getArtista(String artista)
     {
         return artistaRepository.findByArtistName(artista);
     }
 
-    public Artista buscarArtistaPorId(Integer id_artista, String album, Integer id_musica)
+    public Musica buscarArtistaPorId(Integer id_artista, String album, Integer id_musica)
     {
         return artistaRepository.buscarArtistaPorId(id_artista, album, id_musica);
     }
 
-    public List<Artista> getAllAlbuns(String album)
+    public List<Musica> getAllAlbuns(String album)
     {
         return artistaRepository.findByCollectionName(album);
     }
 
-    public List<Artista> getAllMusicas(String musica)
+    public List<Musica> getAllMusicas(String musica)
     {
         return artistaRepository.findByTrackName(musica);
     }
 
-    public List<Artista> buscarArtistas(String artista, String album, String musica)
+    public List<Musica> buscarArtistas(String artista, String album, String musica)
     {
         return artistaRepository.buscarArtistas(artista, album, musica);
     }
 
-    public void addArtista(Artista a)
+    public void addArtista(Musica a)
     {
         artistaRepository.save(a);
     }
 
-    public void editArtista(Artista a)
+    public void editArtista(Musica a)
     {
-        Artista a2 = artistaRepository.findByArtistId(a.getArtistId());
+        Musica a2 = artistaRepository.findByArtistId(a.getArtistId());
         a2.setWrapperType(a.getWrapperType());
         a2.setKind(a.getKind());
         a2.setArtistId(a.getArtistId());
@@ -81,7 +81,7 @@ public class ArtistaService
         artistaRepository.save(a2);
     }
 
-    public void delArtista(Artista a)
+    public void delArtista(Musica a)
     {
         artistaRepository.delete(a);
     }

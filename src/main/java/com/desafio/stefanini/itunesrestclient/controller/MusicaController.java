@@ -1,12 +1,14 @@
 package com.desafio.stefanini.itunesrestclient.controller;
 
+import com.desafio.stefanini.itunesrestclient.model.api.Album;
 import com.desafio.stefanini.itunesrestclient.model.api.Artista;
 import com.desafio.stefanini.itunesrestclient.model.api.Genero;
 import com.desafio.stefanini.itunesrestclient.model.api.Retorno;
 import com.desafio.stefanini.itunesrestclient.model.api.TipoRetorno;
-import com.desafio.stefanini.itunesrestclient.model.itunes.Artist;
-import com.desafio.stefanini.itunesrestclient.model.itunes.ArtistReturn;
+import com.desafio.stefanini.itunesrestclient.model.itunes.Collection;
+import com.desafio.stefanini.itunesrestclient.model.itunes.CollectionReturn;
 import com.desafio.stefanini.itunesrestclient.model.itunes.Track;
+import com.desafio.stefanini.itunesrestclient.service.AlbumService;
 import com.desafio.stefanini.itunesrestclient.service.ArtistaService;
 import com.desafio.stefanini.itunesrestclient.service.GeneroService;
 import com.google.gson.Gson;
@@ -35,45 +37,49 @@ import org.springframework.web.client.RestTemplate;
 
 
 @RestController
-@RequestMapping(value={"/artista"})
-public class ArtistaController
+@RequestMapping(value={"/musica"})
+public class MusicaController
 {
 	
-	static final String URL_ITUNES = "https://itunes.apple.com/search?country=br&media=music&limit=200&entity=musicArtist&term=";
-	
-	
-	@Autowired
-	private ArtistaService artistaService;
 
-	@Autowired
-	private GeneroService generoService;	
+	static final String URL_ITUNES = "https://itunes.apple.com/search?country=br&media=music&limit=200&entity=musicTrack&term=";
 
-    public ArtistaController()
+	 @Autowired
+	 private AlbumService albumService;
+	 
+	 @Autowired
+	 private ArtistaService artistaService;	 
+	 
+	 @Autowired
+	 private GeneroService generoService;	
+	
+
+    public MusicaController()
     {
     }
 
     
 	@ApiOperation(
-			value="Lista informações sobre artistas com o termo informado", 
-			notes="Essa operação lista informações sobre artistas com o termo informado")
+			value="Lista informações sobre albuns com o termo informado", 
+			notes="Essa operação lista informações sobre albuns com o termo informado")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
-					message="Retorna uma lista contendo os artistas com o nome informado",
-					response=Track.class
+					message="Retorna uma lista contendo os albuns com o termo informado",
+					response=Retorno.class
 					),
 			@ApiResponse(
 					code=404, 
 					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
-					response=Track.class
+					response=Retorno.class
 					)
  
 	})    
-    @RequestMapping(method=RequestMethod.GET, value={"/lista", "/lista/{artista}"})
-	public ResponseEntity<?> listar(@PathVariable(value="artista", required = false) String artista)
+    @RequestMapping(method=RequestMethod.GET, value={"/lista", "/lista/{album}"})
+	public ResponseEntity<?> listar(@PathVariable(value="album", required = false) String album)
     {
-		if (artista != null) {
-        	return pesquisaArtista(artista);
+        if (album != null) {
+        	return pesquisaAlbum(album);
         }else {
         	Retorno r = new Retorno();
         	r.setCodigo("404");
@@ -83,29 +89,51 @@ public class ArtistaController
         } 
     }
 	
+	private ResponseEntity<?> pesquisaAlbum(String album){
+		List<Album> a = albumService.getAlbum(album);
+        try
+        {
+            if(a.isEmpty())
+            {
+                inclui_mysql(album);
+                a = albumService.getAlbum(album);
+            }
+            return ResponseEntity.status(HttpStatus.OK).body( montaResposta(a));
+        }
+        catch(Exception e)
+        {
+        	Retorno r = new Retorno();
+        	r.setCodigo("404");
+        	r.setErro(e.getMessage());
+        	r.setTipo(TipoRetorno.ERRO);
+            return ResponseEntity.badRequest().body(r);
+        }
+		
+	} 
+
 	@ApiOperation(
-			value="Insere um artista na base de dados", 
-			response=Track.class, 
-			notes="Essa operação insere informações de um artista")
+			value="Insere um album na base de dados", 
+			response=Album.class, 
+			notes="Essa operação insere informações de um album")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
 					message="Retorna um ResponseEntity com uma mensagem de sucesso",
-					response=Track.class
+					response=Retorno.class
 					),
 			@ApiResponse(
 					code=404, 
 					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
-					response=Track.class
+					response=Retorno.class
 					)
  
 	})  	
     @PutMapping(value={"/insere"})
-    public ResponseEntity<?> inserir(@RequestBody Artista artista)
+    public ResponseEntity<?> inserir(@RequestBody Album album)
     {
         try
         {
-            artistaService.addArtista(artista);
+        	albumService.addAlbum(album);
             return ResponseEntity.status(HttpStatus.OK).body("Incluído com sucesso");
         }
         catch(Exception e)
@@ -119,28 +147,28 @@ public class ArtistaController
     }
 
 	@ApiOperation(
-			value="Altera um artista na base de dados", 
-			response=Track.class, 
-			notes="Essa operação altera informações de um artista")
+			value="Altera um album na base de dados", 
+			response=Album.class, 
+			notes="Essa operação altera informações de um album")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
 					message="Retorna um ResponseEntity com uma mensagem de sucesso",
-					response=Track.class
+					response=Retorno.class
 					),
 			@ApiResponse(
 					code=404, 
 					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
-					response=Track.class
+					response=Retorno.class
 					)
  
 	}) 	
     @PatchMapping(value={"/altera"})
-    public ResponseEntity<?> alterar(@RequestBody Artista artista)
+    public ResponseEntity<?> alterar(@RequestBody Album album)
     {
         try
         {
-            artistaService.editArtista(artista);
+        	albumService. editAlbum(album);
             return ResponseEntity.status(HttpStatus.OK).body("Alterado com sucesso");
         }
         catch(Exception e)
@@ -170,13 +198,13 @@ public class ArtistaController
  
 	}) 	
     @DeleteMapping(value={"/deleta"})
-    public ResponseEntity<?> deletar(@PathParam(value="id_artista") Integer id_artista, @PathParam(value="album") String album, @PathParam(value="id_musica") Integer id_musica)
+    public ResponseEntity<?> deletar(@PathParam(value="id_album") Integer id_album)
     {
-        Artista a;
+        Album a;
         
         try
         {
-            a = artistaService.getById(id_artista);
+            a = albumService.getById(id_album);
             if(a == null)
                 return ResponseEntity.notFound().build();
         }
@@ -188,7 +216,7 @@ public class ArtistaController
         	r.setTipo(TipoRetorno.ERRO);
             return ResponseEntity.badRequest().body(r);
         }
-        artistaService.delArtista(a);
+        albumService.delAlbum(a);
         Retorno r = new Retorno();
     	r.setCodigo("200");
     	r.setErro("Excluído com sucesso");
@@ -196,66 +224,58 @@ public class ArtistaController
         return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).body(r);
     }
 
-    public void inclui_mysql(String artista)
+    public void inclui_mysql(String album)
     {
-        ArtistReturn artistas = pesquisaiTunes(artista);
+        CollectionReturn albuns = pesquisaiTunes(album);
       
-        for(Artist a: artistas.getResults()) {
-        	Artista art = new Artista();
-        	art.setArtista_id(a.getArtistId());
-        	if (generoService.findByNome(a.getPrimaryGenreName()).isEmpty()) {
+        for(Collection c: albuns.getResults()) {
+        	Album a = new Album();
+        		
+        	if (generoService.findByNome(c.getPrimaryGenreName()).isEmpty()) {
         	    Genero g = new Genero();
-        	  	g.setNome(a.getPrimaryGenreName());
+        	  	g.setNome(c.getPrimaryGenreName());
         	  	generoService.addGenero(g);
-        	  	art.setGenero(generoService.findByNome(a.getPrimaryGenreName()).get(0));
-        	}else {
-        		art.setGenero(generoService.findByNome(a.getPrimaryGenreName()).get(0));
         	}  	
+        	a.setGenero(generoService.findByNome(c.getPrimaryGenreName()).get(0));
         	
-        	art.setNome(a.getArtistName());
-        	art.setUrl(a.getArtistLinkUrl());
+           		Artista artista = artistaService.getByArtista_Id(c.getArtistId());
+        	a.setArtista(artista);
         	
-        	if (artistaService.getByArtista_Id(a.getArtistId()) == null) 
-        		try {
-        			artistaService.addArtista(art);
-				} catch (Exception e) {
-					// não faz nada, evita o erro javax.persistence.EntityExistsException. Procurar a maneira certa de resolver este problema!
-				}
+        	a.setNome(c.getCollectionName());
+        	a.setUrl(c.getCollectionViewUrl());
+        	a.setPreco(c.getCollectionPrice());
+        	a.setQtd_musicas(c.getTrackCount());
+        	a.setData_lancamento(c.getReleaseDate());
+        	
+        	if (albumService.getAlbum(c.getCollectionName()).isEmpty()) 
+        		albumService.addAlbum(a);
         }	
 
     }
 
-    public ArtistReturn pesquisaiTunes(String artista)
+    public CollectionReturn pesquisaiTunes(String album)
     {
-    	ArtistReturn a = new ArtistReturn();
+    	CollectionReturn a = new CollectionReturn();
     	a.setResultCount(0);	
         try
         {
             RestTemplate restTemplate = new RestTemplate();
             String result = "";
             Gson gson = new Gson();
-            if (!artista.equalsIgnoreCase("")){
-            	result = (String)restTemplate.getForObject(URL_ITUNES+artista, String.class);
-            	ArtistReturn ar = (ArtistReturn)gson.fromJson(result, ArtistReturn.class);
-            	if (ar.getResultCount() > 0) {
-            		return ar;
+             if (!album.equalsIgnoreCase("")){	
+            	result = (String)restTemplate.getForObject(URL_ITUNES+album, String.class);
+            	CollectionReturn b = (CollectionReturn)gson.fromJson(result, CollectionReturn.class);
+            	if (b.getResultCount() > 0) {
+                	return b;
             	}else {
                 	return a;
                 }
-            }else {
-            	return a;
-            }	
-            /*}else if (!album.equalsIgnoreCase("")){	
-            	result = (String)restTemplate.getForObject(URL_ITUNES_ALBUM+album, String.class);
-            	CollectionReturn b = (CollectionReturn)gson.fromJson(result, CollectionReturn.class);
-            	if (b.getResultCount() > 0) {
-            		result = (String)restTemplate.getForObject(URL_ITUNES_MUSICA+b.getResults().get(0).getArtistName(), String.class);
-                	TrackReturn artistas = (TrackReturn)gson.fromJson(result, TrackReturn.class);
-                	return artistas;
-            	}else {
-                	return a;
-                }	
-            }else if (!musica.equalsIgnoreCase("")){	
+             }else {
+             	return a;
+             }
+             
+            
+             /*}else if (!musica.equalsIgnoreCase("")){	
             	result = (String)restTemplate.getForObject(URL_ITUNES_MUSICA+musica, String.class);
             	TrackReturn artistas = (TrackReturn)gson.fromJson(result, TrackReturn.class);
             	return artistas;
@@ -271,36 +291,14 @@ public class ArtistaController
         }
     }
     
-    private ResponseEntity<?> pesquisaArtista(String artista){
-		List<Artista> a = artistaService.getArtista(artista);
-        try
-        {
-            if(a.isEmpty())
-            {
-                inclui_mysql(artista);
-                a = artistaService.getArtista(artista);
-            }
-            return ResponseEntity.status(HttpStatus.OK).body( montaResposta(a));
-        }
-        catch(Exception e)
-        {
-        	Retorno r = new Retorno();
-        	r.setCodigo("404");
-        	r.setErro(e.getMessage());
-        	r.setTipo(TipoRetorno.ERRO);
-            return ResponseEntity.badRequest().body(r);
-        }
-		
-	}     
-    
-	private List<Retorno> montaResposta(List<Artista> lista) {
+	private List<Retorno> montaResposta(List<Album> lista) {
 		List<Retorno> listaRetorno = new ArrayList<Retorno>();
 
-		for (Artista artista : lista) {
+		for (Album album : lista) {
 			Retorno r = new Retorno();
-			r.setTipo(TipoRetorno.ARTISTA);
+			r.setTipo(TipoRetorno.ALBUM);
 			r.setCodigo("200");
-			r.setEntity(artista);
+			r.setEntity(album);
 			r.setErro("");
 			listaRetorno.add(r);
 			

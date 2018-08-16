@@ -14,7 +14,7 @@ import org.junit.Test;
 
 public class ItunesRestClientTest {
 	
-	@Test
+	/*@Test
 	public void listarVerificaCabecalhosResposta() {
 		get("/ItunesRestClient/artista/listar").
 			then().
@@ -76,6 +76,6 @@ public class ItunesRestClientTest {
 		body(equalTo("Excluído com sucesso"));
 		
 		
-	}
+	}*/
 
 }

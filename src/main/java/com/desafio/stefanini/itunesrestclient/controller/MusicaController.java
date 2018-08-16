@@ -3,14 +3,15 @@ package com.desafio.stefanini.itunesrestclient.controller;
 import com.desafio.stefanini.itunesrestclient.model.api.Album;
 import com.desafio.stefanini.itunesrestclient.model.api.Artista;
 import com.desafio.stefanini.itunesrestclient.model.api.Genero;
+import com.desafio.stefanini.itunesrestclient.model.api.Musica;
 import com.desafio.stefanini.itunesrestclient.model.api.Retorno;
 import com.desafio.stefanini.itunesrestclient.model.api.TipoRetorno;
-import com.desafio.stefanini.itunesrestclient.model.itunes.Collection;
-import com.desafio.stefanini.itunesrestclient.model.itunes.CollectionReturn;
 import com.desafio.stefanini.itunesrestclient.model.itunes.Track;
+import com.desafio.stefanini.itunesrestclient.model.itunes.TrackReturn;
 import com.desafio.stefanini.itunesrestclient.service.AlbumService;
 import com.desafio.stefanini.itunesrestclient.service.ArtistaService;
 import com.desafio.stefanini.itunesrestclient.service.GeneroService;
+import com.desafio.stefanini.itunesrestclient.service.MusicaService;
 import com.google.gson.Gson;
 
 import io.swagger.annotations.ApiOperation;
@@ -19,8 +20,6 @@ import io.swagger.annotations.ApiResponses;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.websocket.server.PathParam;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,6 +44,9 @@ public class MusicaController
 	static final String URL_ITUNES = "https://itunes.apple.com/search?country=br&media=music&limit=200&entity=musicTrack&term=";
 
 	 @Autowired
+	 private MusicaService musicaService;	 
+	
+	 @Autowired
 	 private AlbumService albumService;
 	 
 	 @Autowired
@@ -60,12 +62,12 @@ public class MusicaController
 
     
 	@ApiOperation(
-			value="Lista informações sobre albuns com o termo informado", 
-			notes="Essa operação lista informações sobre albuns com o termo informado")
+			value="Lista informações sobre musicas com o termo informado", 
+			notes="Essa operação lista informações sobre musicas com o termo informado")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
-					message="Retorna uma lista contendo os albuns com o termo informado",
+					message="Retorna uma lista contendo as músicas com o termo informado",
 					response=Retorno.class
 					),
 			@ApiResponse(
@@ -75,30 +77,26 @@ public class MusicaController
 					)
  
 	})    
-    @RequestMapping(method=RequestMethod.GET, value={"/lista", "/lista/{album}"})
-	public ResponseEntity<?> listar(@PathVariable(value="album", required = false) String album)
+    @RequestMapping(method=RequestMethod.GET, value={"/lista", "/lista/{musica}"})
+	public ResponseEntity<?> listar(@PathVariable(value="musica", required = false) String musica)
     {
-        if (album != null) {
-        	return pesquisaAlbum(album);
+        if (musica != null) {
+        	return pesquisaMusica(musica);
         }else {
-        	Retorno r = new Retorno();
-        	r.setCodigo("404");
-        	r.setErro("É obrigatório informar um termo a ser pesquisado");
-        	r.setTipo(TipoRetorno.ERRO);
-        	return ResponseEntity.badRequest().body(r);
+        	return pesquisaMusica("");
         } 
     }
 	
-	private ResponseEntity<?> pesquisaAlbum(String album){
-		List<Album> a = albumService.getAlbum(album);
+	private ResponseEntity<?> pesquisaMusica(String musica){
+		List<Musica> m = musicaService.getMusica(musica);
         try
         {
-            if(a.isEmpty())
+            if(m.isEmpty())
             {
-                inclui_mysql(album);
-                a = albumService.getAlbum(album);
+                inclui_mysql(musica);
+                m = musicaService.getMusica(musica);
             }
-            return ResponseEntity.status(HttpStatus.OK).body( montaResposta(a));
+            return ResponseEntity.status(HttpStatus.OK).body( montaResposta(m));
         }
         catch(Exception e)
         {
@@ -112,9 +110,9 @@ public class MusicaController
 	} 
 
 	@ApiOperation(
-			value="Insere um album na base de dados", 
-			response=Album.class, 
-			notes="Essa operação insere informações de um album")
+			value="Insere uma musica na base de dados", 
+			response=Musica.class, 
+			notes="Essa operação insere informações de uma musica")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
@@ -129,12 +127,43 @@ public class MusicaController
  
 	})  	
     @PutMapping(value={"/insere"})
-    public ResponseEntity<?> inserir(@RequestBody Album album)
+    public ResponseEntity<?> inserir(@RequestBody Musica musica)
     {
         try
         {
-        	albumService.addAlbum(album);
-            return ResponseEntity.status(HttpStatus.OK).body("Incluído com sucesso");
+	        if (musica.getGenero() != null) {	
+        		if (generoService.findByNome(musica.getGenero().getNome()).isEmpty()) {
+	        		Genero g = new Genero();
+	        		g.setNome(musica.getGenero().getNome());
+	        	  	generoService.addGenero(g);
+	        	}  	
+	        	musica.setGenero(generoService.findByNome(musica.getGenero().getNome()).get(0));
+	        }	
+        	
+	        	
+	        if (musica.getAlbum() != null) {
+	        	if (albumService.findByNome(musica.getAlbum().getNome())==null) {
+	        		Album album = new Album();
+	        		album.setGenero(generoService.findByNome(musica.getGenero().getNome()).get(0));
+	        		album.setUrl(musica.getAlbum().getUrl());
+	        		album.setData_lancamento(musica.getAlbum().getData_lancamento());
+	        		album.setPreco(musica.getAlbum().getPreco());
+	        		album.setArtista(musica.getAlbum().getArtista());
+	        		album.setQtd_musicas(musica.getAlbum().getQtd_musicas());
+	        		album.setNome(musica.getAlbum().getNome());
+	    	    	
+	    	    	albumService.addAlbum(album);
+	        	}
+	        	musica.setAlbum(albumService.findByNome(musica.getAlbum().getNome()).get(0));
+	        }	
+        	
+        	musicaService.addMusica(musica);
+        	Retorno r = new Retorno();
+         	r.setCodigo("200");
+         	r.setErro("");
+         	r.setEntity(musica);
+         	r.setTipo(TipoRetorno.SUCESSO);
+            return ResponseEntity.status(HttpStatus.OK).body(r);
         }
         catch(Exception e)
         {
@@ -147,9 +176,9 @@ public class MusicaController
     }
 
 	@ApiOperation(
-			value="Altera um album na base de dados", 
-			response=Album.class, 
-			notes="Essa operação altera informações de um album")
+			value="Altera uma musica na base de dados", 
+			response=Musica.class, 
+			notes="Essa operação altera informações de uma musica")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
@@ -164,12 +193,38 @@ public class MusicaController
  
 	}) 	
     @PatchMapping(value={"/altera"})
-    public ResponseEntity<?> alterar(@RequestBody Album album)
+    public ResponseEntity<?> alterar(@RequestBody Musica musica)
     {
         try
         {
-        	albumService. editAlbum(album);
-            return ResponseEntity.status(HttpStatus.OK).body("Alterado com sucesso");
+        	if (generoService.findByNome(musica.getGenero().getNome()).isEmpty()) {
+        		Genero g = new Genero();
+        		g.setNome(musica.getGenero().getNome());
+        	  	generoService.addGenero(g);
+        	}  	
+        	musica.setGenero(generoService.findByNome(musica.getGenero().getNome()).get(0));
+        	
+        	if (albumService.findByNome(musica.getAlbum().getNome())==null) {
+        		Album album = new Album();
+        		album.setGenero(generoService.findByNome(musica.getGenero().getNome()).get(0));
+        		album.setUrl(musica.getAlbum().getUrl());
+        		album.setData_lancamento(musica.getAlbum().getData_lancamento());
+        		album.setPreco(musica.getAlbum().getPreco());
+        		album.setArtista(musica.getAlbum().getArtista());
+        		album.setQtd_musicas(musica.getAlbum().getQtd_musicas());
+        		album.setNome(musica.getAlbum().getNome());
+    	    	
+    	    	albumService.addAlbum(album);
+        	}
+        	musica.setAlbum(albumService.findByNome(musica.getAlbum().getNome()).get(0));
+        	
+        	musicaService. editMusica(musica);
+        	Retorno r = new Retorno();
+         	r.setCodigo("200");
+         	r.setErro("");
+         	r.setEntity(musica);
+         	r.setTipo(TipoRetorno.SUCESSO);
+            return ResponseEntity.status(HttpStatus.OK).body(r);
         }
         catch(Exception e)
         {
@@ -182,8 +237,8 @@ public class MusicaController
     }
 
 	@ApiOperation(
-			value="Apaga um artista na base de dados", 
-			notes="Essa operação apaga as informações de um artista")
+			value="Apaga uma musica da base de dados", 
+			notes="Essa operação apaga as informações de uma musica")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
@@ -197,15 +252,15 @@ public class MusicaController
 					)
  
 	}) 	
-    @DeleteMapping(value={"/deleta"})
-    public ResponseEntity<?> deletar(@PathParam(value="id_album") Integer id_album)
+    @DeleteMapping(value={"/deleta/{id_musica}"})
+    public ResponseEntity<?> deletar(@PathVariable(value="id_musica") Integer id_musica)
     {
-        Album a;
+        Musica m;
         
         try
         {
-            a = albumService.getById(id_album);
-            if(a == null)
+            m = musicaService.getById(id_musica);
+            if(m == null)
                 return ResponseEntity.notFound().build();
         }
         catch(Exception e)
@@ -216,62 +271,87 @@ public class MusicaController
         	r.setTipo(TipoRetorno.ERRO);
             return ResponseEntity.badRequest().body(r);
         }
-        albumService.delAlbum(a);
+        musicaService.delMusica(m);
         Retorno r = new Retorno();
     	r.setCodigo("200");
-    	r.setErro("Excluído com sucesso");
+    	r.setErro("Excluída com sucesso");
     	r.setTipo(TipoRetorno.SUCESSO);
-        return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).body(r);
+        return ResponseEntity.status(HttpStatus.OK).body(r);
     }
 
     public void inclui_mysql(String album)
     {
-        CollectionReturn albuns = pesquisaiTunes(album);
+        TrackReturn musicas = pesquisaiTunes(album);
       
-        for(Collection c: albuns.getResults()) {
-        	Album a = new Album();
-        		
-        	if (generoService.findByNome(c.getPrimaryGenreName()).isEmpty()) {
-        	    Genero g = new Genero();
-        	  	g.setNome(c.getPrimaryGenreName());
-        	  	generoService.addGenero(g);
-        	}  	
-        	a.setGenero(generoService.findByNome(c.getPrimaryGenreName()).get(0));
+        for(Track t: musicas.getResults()) {
         	
-           		Artista artista = artistaService.getByArtista_Id(c.getArtistId());
-        	a.setArtista(artista);
-        	
-        	a.setNome(c.getCollectionName());
-        	a.setUrl(c.getCollectionViewUrl());
-        	a.setPreco(c.getCollectionPrice());
-        	a.setQtd_musicas(c.getTrackCount());
-        	a.setData_lancamento(c.getReleaseDate());
-        	
-        	if (albumService.getAlbum(c.getCollectionName()).isEmpty()) 
-        		albumService.addAlbum(a);
+        	if (!t.getKind().equalsIgnoreCase("music-video")) {
+	        	Musica m = new Musica();
+	        		
+	        	if (generoService.findByNome(t.getPrimaryGenreName()).isEmpty()) {
+	        	    Genero g = new Genero();
+	        	  	g.setNome(t.getPrimaryGenreName());
+	        	  	generoService.addGenero(g);
+	        	}  	
+	        	m.setGenero(generoService.findByNome(t.getPrimaryGenreName()).get(0));
+	        	
+	        	if (albumService.findByNome(t.getCollectionName()).isEmpty()) {
+	        	    Album al = new Album();
+	        	  	al.setNome(t.getCollectionName());
+	        	  	if (artistaService.getByArtista_Id(t.getArtistId())==null) {
+	            		Artista artista = new Artista();
+	            		artista.setArtista_id(t.getArtistId());
+	            		artista.setNome(t.getArtistName());
+	            		artista.setGenero(generoService.findByNome(t.getPrimaryGenreName()).get(0));
+	            		artista.setUrl(t.getArtistViewUrl());
+	            		artistaService.addArtista(artista);
+	            	}
+	        	  	al.setArtista(artistaService.getByArtista_Id(t.getArtistId()));
+	        	  	al.setGenero(generoService.findByNome(t.getPrimaryGenreName()).get(0));
+	        	  	al.setData_lancamento(t.getReleaseDate());
+	        	  	al.setPreco(t.getCollectionPrice());
+	        	  	al.setQtd_musicas(t.getTrackCount());
+	        	  	al.setUrl(t.getCollectionViewUrl());
+	        	  	albumService.addAlbum(al);
+	        	}  	
+	        	m.setAlbum(albumService.findByNome(t.getCollectionName()).get(0));
+	        	
+	        	m.setDataLancamento(t.getReleaseDate());
+	        	m.setDuracao(t.getTrackTimeMillis());
+	        	m.setIsStremable(t.getIsStreamable());
+	        	m.setNome(t.getTrackName());
+	        	m.setNumeroFaixa(t.getTrackNumber());
+	        	m.setUrl(t.getPreviewUrl());
+	        	m.setPreco(t.getTrackPrice());
+	        	
+	        	
+	        	if (musicaService.getMusica(t.getTrackName()).isEmpty()) 
+	        		musicaService.addMusica(m);
+					
+			}	
         }	
 
     }
 
-    public CollectionReturn pesquisaiTunes(String album)
+    public TrackReturn pesquisaiTunes(String musica)
     {
-    	CollectionReturn a = new CollectionReturn();
-    	a.setResultCount(0);	
+    	TrackReturn t = new TrackReturn();
+    	t.setResultCount(0);	
         try
         {
             RestTemplate restTemplate = new RestTemplate();
             String result = "";
             Gson gson = new Gson();
-             if (!album.equalsIgnoreCase("")){	
-            	result = (String)restTemplate.getForObject(URL_ITUNES+album, String.class);
-            	CollectionReturn b = (CollectionReturn)gson.fromJson(result, CollectionReturn.class);
-            	if (b.getResultCount() > 0) {
-                	return b;
+             if (!musica.equalsIgnoreCase("")){	
+            	result = (String)restTemplate.getForObject(URL_ITUNES+musica, String.class);
+            	TrackReturn track = (TrackReturn)gson.fromJson(result, TrackReturn.class);
+            	if (track.getResultCount() > 0) {
+                	return track;
             	}else {
-                	return a;
+                	return t;
                 }
              }else {
-             	return a;
+             	return t;
              }
              
             
@@ -287,18 +367,18 @@ public class MusicaController
         catch(Exception e)
         {
             e.printStackTrace();
-            return a; 
+            return t; 
         }
     }
     
-	private List<Retorno> montaResposta(List<Album> lista) {
+	private List<Retorno> montaResposta(List<Musica> lista) {
 		List<Retorno> listaRetorno = new ArrayList<Retorno>();
 
-		for (Album album : lista) {
+		for (Musica musica : lista) {
 			Retorno r = new Retorno();
-			r.setTipo(TipoRetorno.ALBUM);
+			r.setTipo(TipoRetorno.MUSICA);
 			r.setCodigo("200");
-			r.setEntity(album);
+			r.setEntity(musica);
 			r.setErro("");
 			listaRetorno.add(r);
 			

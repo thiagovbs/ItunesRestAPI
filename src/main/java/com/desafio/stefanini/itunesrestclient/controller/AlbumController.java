@@ -20,8 +20,6 @@ import io.swagger.annotations.ApiResponses;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.websocket.server.PathParam;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -81,22 +79,18 @@ public class AlbumController
         if (album != null) {
         	return pesquisaAlbum(album);
         }else {
-        	Retorno r = new Retorno();
-        	r.setCodigo("404");
-        	r.setErro("É obrigatório informar um termo a ser pesquisado");
-        	r.setTipo(TipoRetorno.ERRO);
-        	return ResponseEntity.badRequest().body(r);
+        	return pesquisaAlbum("");
         } 
     }
 	
 	private ResponseEntity<?> pesquisaAlbum(String album){
-		List<Album> a = albumService.getAlbum(album);
+		List<Album> a = albumService.findByNome(album);
         try
         {
             if(a.isEmpty())
             {
                 inclui_mysql(album);
-                a = albumService.getAlbum(album);
+                a = albumService.findByNome(album);
             }
             return ResponseEntity.status(HttpStatus.OK).body( montaResposta(a));
         }
@@ -133,8 +127,31 @@ public class AlbumController
     {
         try
         {
+        	
+        	if (generoService.findByNome(album.getGenero().getNome()).isEmpty()) {
+        		Genero g = new Genero();
+        		g.setNome(album.getGenero().getNome());
+        	  	generoService.addGenero(g);
+        	}  	
+        	album.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
+        	
+        	if (artistaService.getByArtista_Id(album.getArtista().getArtista_id())==null) {
+        		Artista artista = new Artista();
+        		artista.setArtista_id(album.getArtista().getArtista_id());
+        		artista.setNome(album.getArtista().getNome());
+        		artista.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
+        		artista.setUrl(album.getArtista().getUrl());
+        		artistaService.addArtista(artista);
+        	}
+        	album.setArtista(artistaService.getByArtista_Id(album.getArtista().getArtista_id()));
+        	
         	albumService.addAlbum(album);
-            return ResponseEntity.status(HttpStatus.OK).body("Incluído com sucesso");
+        	Retorno r = new Retorno();
+         	r.setCodigo("200");
+         	r.setErro("");
+         	r.setEntity(album);
+         	r.setTipo(TipoRetorno.SUCESSO);
+            return ResponseEntity.status(HttpStatus.OK).body(r);
         }
         catch(Exception e)
         {
@@ -168,8 +185,31 @@ public class AlbumController
     {
         try
         {
+        	if (generoService.findByNome(album.getGenero().getNome()).isEmpty()) {
+        		Genero g = new Genero();
+        		g.setNome(album.getGenero().getNome());
+        	  	generoService.addGenero(g);
+        	}  	
+        	album.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
+        	
+        	if (artistaService.getByArtista_Id(album.getArtista().getArtista_id())==null) {
+        		Artista artista = new Artista();
+        		artista.setArtista_id(album.getArtista().getArtista_id());
+        		artista.setNome(album.getArtista().getNome());
+        		artista.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
+        		artista.setUrl(album.getArtista().getUrl());
+        		artistaService.addArtista(artista);
+        	}
+        	album.setArtista(artistaService.getByArtista_Id(album.getArtista().getArtista_id()));
+        	
         	albumService. editAlbum(album);
-            return ResponseEntity.status(HttpStatus.OK).body("Alterado com sucesso");
+        	Retorno r = new Retorno();
+         	r.setCodigo("200");
+         	r.setErro("");
+         	r.setEntity(album);
+         	r.setTipo(TipoRetorno.SUCESSO);
+            return ResponseEntity.status(HttpStatus.OK).body(r);
+        	
         }
         catch(Exception e)
         {
@@ -197,8 +237,8 @@ public class AlbumController
 					)
  
 	}) 	
-    @DeleteMapping(value={"/deleta"})
-    public ResponseEntity<?> deletar(@PathParam(value="id_album") Integer id_album)
+    @DeleteMapping(value={"/deleta/{id_album}"})
+    public ResponseEntity<?> deletar(@PathVariable(value="id_album") Integer id_album)
     {
         Album a;
         
@@ -219,9 +259,9 @@ public class AlbumController
         albumService.delAlbum(a);
         Retorno r = new Retorno();
     	r.setCodigo("200");
-    	r.setErro("Excluído com sucesso");
+    	r.setErro("");
     	r.setTipo(TipoRetorno.SUCESSO);
-        return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).body(r);
+        return ResponseEntity.status(HttpStatus.OK).body(r);
     }
 
     public void inclui_mysql(String album)
@@ -238,8 +278,17 @@ public class AlbumController
         	}  	
         	a.setGenero(generoService.findByNome(c.getPrimaryGenreName()).get(0));
         	
-           		Artista artista = artistaService.getByArtista_Id(c.getArtistId());
-        	a.setArtista(artista);
+        	if (artistaService.getByArtista_Id(c.getArtistId())==null) {
+        		Artista artista = new Artista();
+        		artista.setArtista_id(c.getArtistId());
+        		artista.setNome(c.getArtistName());
+        		artista.setGenero(generoService.findByNome(c.getPrimaryGenreName()).get(0));
+        		artista.setUrl(c.getArtistViewUrl());
+        		artistaService.addArtista(artista);
+        	}
+    	  	a.setArtista(artistaService.getByArtista_Id(c.getArtistId()));
+           		
+        	
         	
         	a.setNome(c.getCollectionName());
         	a.setUrl(c.getCollectionViewUrl());
@@ -247,8 +296,9 @@ public class AlbumController
         	a.setQtd_musicas(c.getTrackCount());
         	a.setData_lancamento(c.getReleaseDate());
         	
-        	if (albumService.getAlbum(c.getCollectionName()).isEmpty()) 
+        	if (albumService.findByNome(c.getCollectionName()).isEmpty()) 
         		albumService.addAlbum(a);
+				
         }	
 
     }

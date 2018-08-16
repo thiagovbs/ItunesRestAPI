@@ -6,7 +6,6 @@ import com.desafio.stefanini.itunesrestclient.model.api.Retorno;
 import com.desafio.stefanini.itunesrestclient.model.api.TipoRetorno;
 import com.desafio.stefanini.itunesrestclient.model.itunes.Artist;
 import com.desafio.stefanini.itunesrestclient.model.itunes.ArtistReturn;
-import com.desafio.stefanini.itunesrestclient.model.itunes.Track;
 import com.desafio.stefanini.itunesrestclient.service.ArtistaService;
 import com.desafio.stefanini.itunesrestclient.service.GeneroService;
 import com.google.gson.Gson;
@@ -18,7 +17,6 @@ import io.swagger.annotations.ApiResponses;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.websocket.server.PathParam;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -60,12 +58,12 @@ public class ArtistaController
 			@ApiResponse(
 					code=200, 
 					message="Retorna uma lista contendo os artistas com o nome informado",
-					response=Track.class
+					response=Retorno.class
 					),
 			@ApiResponse(
 					code=404, 
 					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
-					response=Track.class
+					response=Retorno.class
 					)
  
 	})    
@@ -75,28 +73,24 @@ public class ArtistaController
 		if (artista != null) {
         	return pesquisaArtista(artista);
         }else {
-        	Retorno r = new Retorno();
-        	r.setCodigo("404");
-        	r.setErro("É obrigatório informar um termo a ser pesquisado");
-        	r.setTipo(TipoRetorno.ERRO);
-        	return ResponseEntity.badRequest().body(r);
+        	return pesquisaArtista("");
         } 
     }
 	
 	@ApiOperation(
 			value="Insere um artista na base de dados", 
-			response=Track.class, 
+			response=Artista.class, 
 			notes="Essa operação insere informações de um artista")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
 					message="Retorna um ResponseEntity com uma mensagem de sucesso",
-					response=Track.class
+					response=Retorno.class
 					),
 			@ApiResponse(
 					code=404, 
 					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
-					response=Track.class
+					response=Retorno.class
 					)
  
 	})  	
@@ -105,8 +99,22 @@ public class ArtistaController
     {
         try
         {
+        	Genero g = new Genero();
+        	if (generoService.findByNome(artista.getGenero().getNome()).isEmpty()) {
+        	    g.setNome(artista.getGenero().getNome());
+        	  	generoService.addGenero(g);
+        	}
+        	g = generoService.findByNome(artista.getGenero().getNome()).get(0);
+        	artista.setGenero(g);
+        	
             artistaService.addArtista(artista);
-            return ResponseEntity.status(HttpStatus.OK).body("Incluído com sucesso");
+            Retorno r = new Retorno();
+        	r.setCodigo("200");
+        	r.setErro("");
+        	r.setEntity(artista);
+        	r.setTipo(TipoRetorno.SUCESSO);
+            return ResponseEntity.status(HttpStatus.OK).body(r);
+            
         }
         catch(Exception e)
         {
@@ -120,18 +128,18 @@ public class ArtistaController
 
 	@ApiOperation(
 			value="Altera um artista na base de dados", 
-			response=Track.class, 
+			response=Artista.class, 
 			notes="Essa operação altera informações de um artista")
 	@ApiResponses(value= {
 			@ApiResponse(
 					code=200, 
 					message="Retorna um ResponseEntity com uma mensagem de sucesso",
-					response=Track.class
+					response=Retorno.class
 					),
 			@ApiResponse(
 					code=404, 
 					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
-					response=Track.class
+					response=Retorno.class
 					)
  
 	}) 	
@@ -140,8 +148,21 @@ public class ArtistaController
     {
         try
         {
+        	Genero g = new Genero();
+        	if (generoService.findByNome(artista.getGenero().getNome()).isEmpty()) {
+        	    g.setNome(artista.getGenero().getNome());
+        	  	generoService.addGenero(g);
+        	}
+        	g = generoService.findByNome(artista.getGenero().getNome()).get(0);
+        	artista.setGenero(g);
             artistaService.editArtista(artista);
-            return ResponseEntity.status(HttpStatus.OK).body("Alterado com sucesso");
+            Retorno r = new Retorno();
+        	r.setCodigo("200");
+        	r.setErro("");
+        	r.setEntity(artista);
+        	r.setTipo(TipoRetorno.SUCESSO);
+            return ResponseEntity.status(HttpStatus.OK).body(r);
+           
         }
         catch(Exception e)
         {
@@ -160,17 +181,17 @@ public class ArtistaController
 			@ApiResponse(
 					code=200, 
 					message="Retorna um ResponseEntity com uma mensagem de sucesso",
-					response=Track.class
+					response=Retorno.class
 					),
 			@ApiResponse(
 					code=404, 
 					message="Caso tenhamos algum erro vamos retornar um ResponseEntity com a Exception",
-					response=Track.class
+					response=Retorno.class
 					)
  
 	}) 	
-    @DeleteMapping(value={"/deleta"})
-    public ResponseEntity<?> deletar(@PathParam(value="id_artista") Integer id_artista, @PathParam(value="album") String album, @PathParam(value="id_musica") Integer id_musica)
+    @DeleteMapping(value={"/deleta/{id_artista}"})
+    public ResponseEntity<?> deletar(@PathVariable(value="id_artista") Integer id_artista)
     {
         Artista a;
         
@@ -191,9 +212,9 @@ public class ArtistaController
         artistaService.delArtista(a);
         Retorno r = new Retorno();
     	r.setCodigo("200");
-    	r.setErro("Excluído com sucesso");
+    	r.setErro("");
     	r.setTipo(TipoRetorno.SUCESSO);
-        return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).body(r);
+        return ResponseEntity.status(HttpStatus.OK).body(r);
     }
 
     public void inclui_mysql(String artista)
@@ -207,20 +228,13 @@ public class ArtistaController
         	    Genero g = new Genero();
         	  	g.setNome(a.getPrimaryGenreName());
         	  	generoService.addGenero(g);
-        	  	art.setGenero(generoService.findByNome(a.getPrimaryGenreName()).get(0));
-        	}else {
-        		art.setGenero(generoService.findByNome(a.getPrimaryGenreName()).get(0));
         	}  	
-        	
+        	art.setGenero(generoService.findByNome(a.getPrimaryGenreName()).get(0));
         	art.setNome(a.getArtistName());
         	art.setUrl(a.getArtistLinkUrl());
         	
         	if (artistaService.getByArtista_Id(a.getArtistId()) == null) 
-        		try {
-        			artistaService.addArtista(art);
-				} catch (Exception e) {
-					// não faz nada, evita o erro javax.persistence.EntityExistsException. Procurar a maneira certa de resolver este problema!
-				}
+        		artistaService.addArtista(art);
         }	
 
     }
@@ -245,24 +259,6 @@ public class ArtistaController
             }else {
             	return a;
             }	
-            /*}else if (!album.equalsIgnoreCase("")){	
-            	result = (String)restTemplate.getForObject(URL_ITUNES_ALBUM+album, String.class);
-            	CollectionReturn b = (CollectionReturn)gson.fromJson(result, CollectionReturn.class);
-            	if (b.getResultCount() > 0) {
-            		result = (String)restTemplate.getForObject(URL_ITUNES_MUSICA+b.getResults().get(0).getArtistName(), String.class);
-                	TrackReturn artistas = (TrackReturn)gson.fromJson(result, TrackReturn.class);
-                	return artistas;
-            	}else {
-                	return a;
-                }	
-            }else if (!musica.equalsIgnoreCase("")){	
-            	result = (String)restTemplate.getForObject(URL_ITUNES_MUSICA+musica, String.class);
-            	TrackReturn artistas = (TrackReturn)gson.fromJson(result, TrackReturn.class);
-            	return artistas;
-            }else {
-            	return a;
-            }*/
-            
         }
         catch(Exception e)
         {

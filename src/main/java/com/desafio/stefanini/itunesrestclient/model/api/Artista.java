@@ -2,12 +2,12 @@ package com.desafio.stefanini.itunesrestclient.model.api;
 
 import java.math.BigInteger;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
 
 import com.desafio.stefanini.itunesrestclient.model.api.Genero;
 
@@ -16,13 +16,13 @@ public class Artista implements EntidadeGenerica{
 
 	@Id
 	@GeneratedValue(strategy=javax.persistence.GenerationType.IDENTITY)
+	@Column(name="id_artista")
 	private Integer id;
 	private BigInteger artista_id;
 	private String nome; 
 	private String url; 
 	
 	@ManyToOne
-	@MapsId
 	@JoinColumn(name = "id_genero")
 	private Genero genero;
 	

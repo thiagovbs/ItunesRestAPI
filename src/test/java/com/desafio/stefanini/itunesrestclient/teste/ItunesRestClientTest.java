@@ -14,9 +14,9 @@ import org.junit.Test;
 
 public class ItunesRestClientTest {
 	
-	/*@Test
+	@Test
 	public void listarVerificaCabecalhosResposta() {
-		get("/ItunesRestClient/artista/listar").
+		get("/ItunesRestClient/artista/lista").
 			then().
 			statusCode(200).
 				and().
@@ -25,26 +25,26 @@ public class ItunesRestClientTest {
 	
 	@Test
 	public void listaMusicaValida() {
-		get("/ItunesRestClient/artista/listar?musica=Musica 1 do Thiago alterada").
+		get("/ItunesRestClient/musica/lista/Musica jUnit").
 			then().
-			statusCode(200).body("[0].trackId", equalTo(111));
+			statusCode(200).body("[0].entity.id", equalTo(150));
 	}
 	
 	@Test
 	public void listaArtistaValido() {
 		
-		get("/ItunesRestClient/artista/listar?artista=Thiago Veloso").
+		get("/ItunesRestClient/artista/lista/jUnit").
 		then().
-		statusCode(200).body("[0].artistId", equalTo(157));
+		statusCode(200).body("[0].entity.id", equalTo(260));
 		
 			
 	}
 	
 	@Test
 	public void listaAlbumValido() {
-		get("/ItunesRestClient/artista/listar?album=Thiago CD 1 alterado").
+		get("/ItunesRestClient/album/lista/ALBUM JUNIT").
 			then().
-			statusCode(200).body("[0].artistcollectionId", equalTo(111));
+			statusCode(200).body("[0].entity.id", equalTo(128));
 	}
 
 	@Test
@@ -56,26 +56,20 @@ public class ItunesRestClientTest {
 	public void gravaNovoArtista() {
 		given().
 			contentType(JSON).
-			body("{\"artistId\" : 555,\"artistName\" : \"Teste de Inclusao\"}").
-			when().
-			put("/ItunesRestClient/artista/inserir").
+			body("{\"id\":1,\"artista_id\" : 1485521,\"genero\" : {\"nome\":\"Generico\"}, \"nome\":\"Teste de Inclusao\",\"url\":\"www.teste.com.br\"	}").
+			put("/ItunesRestClient/artista/insere").
 			then().
-			statusCode(200).
-			log().all().
-			and().
-			body(equalTo("Incluído com sucesso"));
+			statusCode(200);
 		
 	}
 	
 	@Test
 	public void apagaArtistaExistente() {
-		delete("/ItunesRestClient/artista/deletar?id_artista=555").
+		delete("/ItunesRestClient/artista/deleta/268").
 		then().
-		statusCode(200).
-		and().
-		body(equalTo("Excluído com sucesso"));
+		statusCode(200);
 		
 		
-	}*/
+	}
 
 }

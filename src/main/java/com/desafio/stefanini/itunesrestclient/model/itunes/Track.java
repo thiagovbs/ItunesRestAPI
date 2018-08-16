@@ -1,5 +1,6 @@
 package com.desafio.stefanini.itunesrestclient.model.itunes;
 
+import java.math.BigInteger;
 import java.util.Date;
 
 import javax.persistence.Entity;
@@ -10,6 +11,41 @@ import javax.persistence.Table;
 @Entity
 @Table(name="artista")
 public class Track {
+
+	@Id
+    @GeneratedValue(strategy=javax.persistence.GenerationType.IDENTITY)
+    private Integer id;
+    String wrapperType;
+    String kind;
+    BigInteger artistId;
+    Integer artistcollectionId;
+    Integer trackId;
+    String artistName;
+    String collectionName;
+    String trackName;
+    String collectionCensoredName;
+    String trackCensoredName;
+    String artistViewUrl;
+    String collectionViewUrl;
+    String trackViewUrl;
+    String previewUrl;
+    String artworkUrl30;
+    String artworkUrl60;
+    String artworkUrl100;
+    Double collectionPrice;
+    Double trackPrice;
+    Date releaseDate;
+    String collectionExplicitness;
+    String trackExplicitness;
+    Integer discCount;
+    Integer discNumber;
+    Integer trackCount;
+    Integer trackNumber;
+    Double trackTimeMillis;
+    String country;
+    String currency;
+    String primaryGenreName;
+    Boolean isStreamable;
 	
 	public Track()
     {
@@ -35,12 +71,12 @@ public class Track {
         this.kind = kind;
     }
 
-    public Integer getArtistId()
+    public BigInteger getArtistId()
     {
         return artistId;
     }
 
-    public void setArtistId(Integer artistId)
+    public void setArtistId(BigInteger artistId)
     {
         this.artistId = artistId;
     }
@@ -275,12 +311,12 @@ public class Track {
         this.trackNumber = trackNumber;
     }
 
-    public Integer getTrackTimeMillis()
+    public Double getTrackTimeMillis()
     {
         return trackTimeMillis;
     }
 
-    public void setTrackTimeMillis(Integer trackTimeMillis)
+    public void setTrackTimeMillis(Double trackTimeMillis)
     {
         this.trackTimeMillis = trackTimeMillis;
     }
@@ -324,40 +360,4 @@ public class Track {
     {
         this.isStreamable = isStreamable;
     }
-
-    @Id
-    @GeneratedValue(strategy=javax.persistence.GenerationType.IDENTITY)
-    private Integer id;
-    String wrapperType;
-    String kind;
-    Integer artistId;
-    Integer artistcollectionId;
-    Integer trackId;
-    String artistName;
-    String collectionName;
-    String trackName;
-    String collectionCensoredName;
-    String trackCensoredName;
-    String artistViewUrl;
-    String collectionViewUrl;
-    String trackViewUrl;
-    String previewUrl;
-    String artworkUrl30;
-    String artworkUrl60;
-    String artworkUrl100;
-    Double collectionPrice;
-    Double trackPrice;
-    Date releaseDate;
-    String collectionExplicitness;
-    String trackExplicitness;
-    Integer discCount;
-    Integer discNumber;
-    Integer trackCount;
-    Integer trackNumber;
-    Integer trackTimeMillis;
-    String country;
-    String currency;
-    String primaryGenreName;
-    Boolean isStreamable;
-
 }

@@ -29,8 +29,8 @@ public class AlbumService {
     	}
     	
     }
-    
-    public List<Album> getAlbum(String album)
+   
+    public List<Album> findByNome(String album)
     {
         return albumRepository.findByNome(album);
     }

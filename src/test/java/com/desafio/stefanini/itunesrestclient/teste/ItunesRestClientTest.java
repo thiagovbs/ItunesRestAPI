@@ -7,10 +7,9 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.hamcrest.Matchers.*;
 
-
 import org.junit.Test;
 
-
+import io.restassured.response.Response;
 
 public class ItunesRestClientTest {
 	
@@ -65,10 +64,15 @@ public class ItunesRestClientTest {
 	
 	@Test
 	public void apagaArtistaExistente() {
-	  /*  delete("/ItunesRestClient/artista/268").
+		
+		Response response = get("/ItunesRestClient/artista/Teste de Inclusao");
+		
+		Integer id = response.jsonPath().get("[0].entity.id");
+		
+		delete("/ItunesRestClient/artista/"+id).
 		then().
 		statusCode(200);
-	*/	
+		
 		
 	}
 

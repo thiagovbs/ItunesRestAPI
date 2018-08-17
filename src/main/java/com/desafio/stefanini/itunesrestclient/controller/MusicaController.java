@@ -196,27 +196,30 @@ public class MusicaController
     {
         try
         {
-        	if (generoService.findByNome(musica.getGenero().getNome()).isEmpty()) {
-        		Genero g = new Genero();
-        		g.setNome(musica.getGenero().getNome());
-        	  	generoService.addGenero(g);
-        	}  	
-        	musica.setGenero(generoService.findByNome(musica.getGenero().getNome()).get(0));
+	        if (musica.getGenero() != null) {	
+        		if (generoService.findByNome(musica.getGenero().getNome()).isEmpty()) {
+	        		Genero g = new Genero();
+	        		g.setNome(musica.getGenero().getNome());
+	        	  	generoService.addGenero(g);
+	        	}  	
+	        	musica.setGenero(generoService.findByNome(musica.getGenero().getNome()).get(0));
+	        }	
         	
-        	if (albumService.findByNome(musica.getAlbum().getNome())==null) {
-        		Album album = new Album();
-        		album.setGenero(generoService.findByNome(musica.getGenero().getNome()).get(0));
-        		album.setUrl(musica.getAlbum().getUrl());
-        		album.setData_lancamento(musica.getAlbum().getData_lancamento());
-        		album.setPreco(musica.getAlbum().getPreco());
-        		album.setArtista(musica.getAlbum().getArtista());
-        		album.setQtd_musicas(musica.getAlbum().getQtd_musicas());
-        		album.setNome(musica.getAlbum().getNome());
-    	    	
-    	    	albumService.addAlbum(album);
-        	}
-        	musica.setAlbum(albumService.findByNome(musica.getAlbum().getNome()).get(0));
-        	
+	        if (musica.getAlbum() != null) {	
+	        	if (albumService.findByNome(musica.getAlbum().getNome())==null) {
+	        		Album album = new Album();
+	        		album.setGenero(generoService.findByNome(musica.getGenero().getNome()).get(0));
+	        		album.setUrl(musica.getAlbum().getUrl());
+	        		album.setData_lancamento(musica.getAlbum().getData_lancamento());
+	        		album.setPreco(musica.getAlbum().getPreco());
+	        		album.setArtista(musica.getAlbum().getArtista());
+	        		album.setQtd_musicas(musica.getAlbum().getQtd_musicas());
+	        		album.setNome(musica.getAlbum().getNome());
+	    	    	
+	    	    	albumService.addAlbum(album);
+	        	}
+	        	musica.setAlbum(albumService.findByNome(musica.getAlbum().getNome()).get(0));
+	        }
         	musicaService. editMusica(musica);
         	Retorno r = new Retorno();
          	r.setCodigo("200");
@@ -325,9 +328,12 @@ public class MusicaController
 	        	
 	        	
 	        	if (musicaService.getMusica(t.getTrackName()).isEmpty()) 
-	        		musicaService.addMusica(m);
-					
-			}	
+	        		try {
+	        			musicaService.addMusica(m);
+					} catch (Exception e) {
+						// não faz nada, evita o erro javax.persistence.EntityExistsException. Procurar a maneira certa de resolver este problema!
+					}
+        }	
         }	
 
     }

@@ -184,22 +184,26 @@ public class AlbumController
     {
         try
         {
-        	if (generoService.findByNome(album.getGenero().getNome()).isEmpty()) {
-        		Genero g = new Genero();
-        		g.setNome(album.getGenero().getNome());
-        	  	generoService.addGenero(g);
-        	}  	
-        	album.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
+	        if (album.getGenero().getNome() != null) {	
+        		if (generoService.findByNome(album.getGenero().getNome()).isEmpty()) {
+	        		Genero g = new Genero();
+	        		g.setNome(album.getGenero().getNome());
+	        	  	generoService.addGenero(g);
+	        	}  	
+	        	album.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
+	        }	
         	
-        	if (artistaService.getByArtista_Id(album.getArtista().getArtista_id())==null) {
-        		Artista artista = new Artista();
-        		artista.setArtista_id(album.getArtista().getArtista_id());
-        		artista.setNome(album.getArtista().getNome());
-        		artista.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
-        		artista.setUrl(album.getArtista().getUrl());
-        		artistaService.addArtista(artista);
-        	}
-        	album.setArtista(artistaService.getByArtista_Id(album.getArtista().getArtista_id()));
+	        if (album.getArtista() != null) {	
+	        	if (artistaService.getByArtista_Id(album.getArtista().getArtista_id())==null) {
+	        		Artista artista = new Artista();
+	        		artista.setArtista_id(album.getArtista().getArtista_id());
+	        		artista.setNome(album.getArtista().getNome());
+	        		artista.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
+	        		artista.setUrl(album.getArtista().getUrl());
+	        		artistaService.addArtista(artista);
+	        	}
+	        	album.setArtista(artistaService.getByArtista_Id(album.getArtista().getArtista_id()));
+	        }	
         	
         	albumService. editAlbum(album);
         	Retorno r = new Retorno();
@@ -296,7 +300,11 @@ public class AlbumController
         	a.setData_lancamento(c.getReleaseDate());
         	
         	if (albumService.findByNome(c.getCollectionName()).isEmpty()) 
-        		albumService.addAlbum(a);
+        		try {
+        			albumService.addAlbum(a);
+				} catch (Exception e) {
+					// não faz nada, evita o erro javax.persistence.EntityExistsException. Procurar a maneira certa de resolver este problema!
+				}
         }	
 
     }
@@ -321,7 +329,7 @@ public class AlbumController
              }else {
              	return a;
              }
-          
+            
         }
         catch(Exception e)
         {

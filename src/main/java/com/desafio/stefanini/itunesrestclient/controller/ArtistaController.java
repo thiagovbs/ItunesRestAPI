@@ -147,13 +147,15 @@ public class ArtistaController
     {
         try
         {
-        	Genero g = new Genero();
-        	if (generoService.findByNome(artista.getGenero().getNome()).isEmpty()) {
-        	    g.setNome(artista.getGenero().getNome());
-        	  	generoService.addGenero(g);
-        	}
-        	g = generoService.findByNome(artista.getGenero().getNome()).get(0);
-        	artista.setGenero(g);
+	       if (artista.getGenero()!= null) { 	
+        		Genero g = new Genero();
+	        	if (generoService.findByNome(artista.getGenero().getNome()).isEmpty()) {
+	        	    g.setNome(artista.getGenero().getNome());
+	        	  	generoService.addGenero(g);
+	        	}
+	        	g = generoService.findByNome(artista.getGenero().getNome()).get(0);
+	        	artista.setGenero(g);
+	       }	
             artistaService.editArtista(artista);
             Retorno r = new Retorno();
         	r.setCodigo("200");
@@ -165,6 +167,7 @@ public class ArtistaController
         }
         catch(Exception e)
         {
+        	e.printStackTrace();
         	Retorno r = new Retorno();
         	r.setCodigo("404");
         	r.setErro(e.getMessage());
@@ -233,7 +236,11 @@ public class ArtistaController
         	art.setUrl(a.getArtistLinkUrl());
         	
         	if (artistaService.getByArtista_Id(a.getArtistId()) == null) 
-        		artistaService.addArtista(art);
+        		try {
+        			artistaService.addArtista(art);
+				} catch (Exception e) {
+					// não faz nada, evita o erro javax.persistence.EntityExistsException. Procurar a maneira certa de resolver este problema!
+				}
         }	
 
     }

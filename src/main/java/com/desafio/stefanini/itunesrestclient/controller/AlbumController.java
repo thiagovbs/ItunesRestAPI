@@ -127,22 +127,26 @@ public class AlbumController
         try
         {
         	
-        	if (generoService.findByNome(album.getGenero().getNome()).isEmpty()) {
-        		Genero g = new Genero();
-        		g.setNome(album.getGenero().getNome());
-        	  	generoService.addGenero(g);
-        	}  	
-        	album.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
-        	
-        	if (artistaService.getByArtista_Id(album.getArtista().getArtista_id())==null) {
-        		Artista artista = new Artista();
-        		artista.setArtista_id(album.getArtista().getArtista_id());
-        		artista.setNome(album.getArtista().getNome());
-        		artista.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
-        		artista.setUrl(album.getArtista().getUrl());
-        		artistaService.addArtista(artista);
-        	}
-        	album.setArtista(artistaService.getByArtista_Id(album.getArtista().getArtista_id()));
+        	 if (album.getGenero().getNome() != null) {	
+         		if (generoService.findByNome(album.getGenero().getNome()).isEmpty()) {
+ 	        		Genero g = new Genero();
+ 	        		g.setNome(album.getGenero().getNome());
+ 	        	  	generoService.addGenero(g);
+ 	        	}  	
+ 	        	album.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
+ 	        }	
+         	
+ 	        if (album.getArtista() != null) {	
+ 	        	if (artistaService.getByArtista_Id(album.getArtista().getArtista_id())==null) {
+ 	        		Artista artista = new Artista();
+ 	        		artista.setArtista_id(album.getArtista().getArtista_id());
+ 	        		artista.setNome(album.getArtista().getNome());
+ 	        		artista.setGenero(generoService.findByNome(album.getGenero().getNome()).get(0));
+ 	        		artista.setUrl(album.getArtista().getUrl());
+ 	        		artistaService.addArtista(artista);
+ 	        	}
+ 	        	album.setArtista(artistaService.getByArtista_Id(album.getArtista().getArtista_id()));
+ 	        }	
         	
         	albumService.addAlbum(album);
         	Retorno r = new Retorno();

@@ -98,13 +98,16 @@ public class ArtistaController
     {
         try
         {
-        	Genero g = new Genero();
-        	if (generoService.findByNome(artista.getGenero().getNome()).isEmpty()) {
-        	    g.setNome(artista.getGenero().getNome());
-        	  	generoService.addGenero(g);
-        	}
-        	g = generoService.findByNome(artista.getGenero().getNome()).get(0);
-        	artista.setGenero(g);
+        	
+        	if (artista.getGenero()!= null) { 	
+        		Genero g = new Genero();
+	        	if (generoService.findByNome(artista.getGenero().getNome()).isEmpty()) {
+	        	    g.setNome(artista.getGenero().getNome());
+	        	  	generoService.addGenero(g);
+	        	}
+	        	g = generoService.findByNome(artista.getGenero().getNome()).get(0);
+	        	artista.setGenero(g);
+	       }	
         	
             artistaService.addArtista(artista);
             Retorno r = new Retorno();

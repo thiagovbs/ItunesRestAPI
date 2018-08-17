@@ -36,7 +36,6 @@ import org.springframework.web.client.RestTemplate;
 
 
 @RestController
-@RequestMapping(value={"/musica"})
 public class MusicaController
 {
 	
@@ -77,7 +76,7 @@ public class MusicaController
 					)
  
 	})    
-    @RequestMapping(method=RequestMethod.GET, value={"/lista", "/lista/{musica}"})
+    @RequestMapping(method=RequestMethod.GET, value={"/musica", "/musica/{musica}"})
 	public ResponseEntity<?> listar(@PathVariable(value="musica", required = false) String musica)
     {
         if (musica != null) {
@@ -126,7 +125,7 @@ public class MusicaController
 					)
  
 	})  	
-    @PutMapping(value={"/insere"})
+    @PutMapping(value={"/musica"})
     public ResponseEntity<?> inserir(@RequestBody Musica musica)
     {
         try
@@ -192,7 +191,7 @@ public class MusicaController
 					)
  
 	}) 	
-    @PatchMapping(value={"/altera"})
+    @PatchMapping(value={"/musica"})
     public ResponseEntity<?> alterar(@RequestBody Musica musica)
     {
         try
@@ -252,7 +251,7 @@ public class MusicaController
 					)
  
 	}) 	
-    @DeleteMapping(value={"/deleta/{id_musica}"})
+    @DeleteMapping(value={"/musica/{id_musica}"})
     public ResponseEntity<?> deletar(@PathVariable(value="id_musica") Integer id_musica)
     {
         Musica m;
@@ -353,16 +352,6 @@ public class MusicaController
              }else {
              	return t;
              }
-             
-            
-             /*}else if (!musica.equalsIgnoreCase("")){	
-            	result = (String)restTemplate.getForObject(URL_ITUNES_MUSICA+musica, String.class);
-            	TrackReturn artistas = (TrackReturn)gson.fromJson(result, TrackReturn.class);
-            	return artistas;
-            }else {
-            	return a;
-            }*/
-            
         }
         catch(Exception e)
         {

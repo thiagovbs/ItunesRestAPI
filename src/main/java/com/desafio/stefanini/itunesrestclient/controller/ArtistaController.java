@@ -33,7 +33,6 @@ import org.springframework.web.client.RestTemplate;
 
 
 @RestController
-@RequestMapping(value={"/artista"})
 public class ArtistaController
 {
 	
@@ -67,7 +66,7 @@ public class ArtistaController
 					)
  
 	})    
-    @RequestMapping(method=RequestMethod.GET, value={"/lista", "/lista/{artista}"})
+    @RequestMapping(method=RequestMethod.GET, value={"/artista", "/artista/{artista}"})
 	public ResponseEntity<?> listar(@PathVariable(value="artista", required = false) String artista)
     {
 		if (artista != null) {
@@ -94,7 +93,7 @@ public class ArtistaController
 					)
  
 	})  	
-    @PutMapping(value={"/insere"})
+    @PutMapping(value={"/artista"})
     public ResponseEntity<?> inserir(@RequestBody Artista artista)
     {
         try
@@ -143,7 +142,7 @@ public class ArtistaController
 					)
  
 	}) 	
-    @PatchMapping(value={"/altera"})
+    @PatchMapping(value={"/artista"})
     public ResponseEntity<?> alterar(@RequestBody Artista artista)
     {
         try
@@ -190,7 +189,7 @@ public class ArtistaController
 					)
  
 	}) 	
-    @DeleteMapping(value={"/deleta/{id_artista}"})
+    @DeleteMapping(value={"/artista/{id_artista}"})
     public ResponseEntity<?> deletar(@PathVariable(value="id_artista") Integer id_artista)
     {
         Artista a;
@@ -258,7 +257,7 @@ public class ArtistaController
                 }
             }else {
             	return a;
-            }	
+            }
         }
         catch(Exception e)
         {

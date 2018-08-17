@@ -16,7 +16,7 @@ public class ItunesRestClientTest {
 	
 	@Test
 	public void listarVerificaCabecalhosResposta() {
-		get("/ItunesRestClient/artista/lista").
+		get("/ItunesRestClient/artista").
 			then().
 			statusCode(200).
 				and().
@@ -25,7 +25,7 @@ public class ItunesRestClientTest {
 	
 	@Test
 	public void listaMusicaValida() {
-		get("/ItunesRestClient/musica/lista/Musica jUnit").
+		get("/ItunesRestClient/musica/Musica jUnit").
 			then().
 			statusCode(200).body("[0].entity.id", equalTo(150));
 	}
@@ -33,7 +33,7 @@ public class ItunesRestClientTest {
 	@Test
 	public void listaArtistaValido() {
 		
-		get("/ItunesRestClient/artista/lista/jUnit").
+		get("/ItunesRestClient/artista/jUnit").
 		then().
 		statusCode(200).body("[0].entity.id", equalTo(260));
 		
@@ -42,14 +42,14 @@ public class ItunesRestClientTest {
 	
 	@Test
 	public void listaAlbumValido() {
-		get("/ItunesRestClient/album/lista/ALBUM JUNIT").
+		get("/ItunesRestClient/album/ALBUM JUNIT").
 			then().
 			statusCode(200).body("[0].entity.id", equalTo(128));
 	}
 
 	@Test
 	public void artistaRetorna404() {
-		get("/ItunesRestClient/artista/url_errada").then().statusCode(404);
+		get("/ItunesRestClient/url_errada").then().statusCode(404);
 	}
 	
 	@Test
@@ -57,7 +57,7 @@ public class ItunesRestClientTest {
 		given().
 			contentType(JSON).
 			body("{\"id\":1,\"artista_id\" : 1485521,\"genero\" : {\"nome\":\"Generico\"}, \"nome\":\"Teste de Inclusao\",\"url\":\"www.teste.com.br\"	}").
-			put("/ItunesRestClient/artista/insere").
+			put("/ItunesRestClient/artista").
 			then().
 			statusCode(200);
 		
@@ -65,10 +65,10 @@ public class ItunesRestClientTest {
 	
 	@Test
 	public void apagaArtistaExistente() {
-		delete("/ItunesRestClient/artista/deleta/268").
+	  /*  delete("/ItunesRestClient/artista/268").
 		then().
 		statusCode(200);
-		
+	*/	
 		
 	}
 

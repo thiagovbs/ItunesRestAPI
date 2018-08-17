@@ -35,7 +35,6 @@ import org.springframework.web.client.RestTemplate;
 
 
 @RestController
-@RequestMapping(value={"/album"})
 public class AlbumController
 {
 	
@@ -73,7 +72,7 @@ public class AlbumController
 					)
  
 	})    
-    @RequestMapping(method=RequestMethod.GET, value={"/lista", "/lista/{album}"})
+    @RequestMapping(method=RequestMethod.GET, value={"/album", "/album/{album}"})
 	public ResponseEntity<?> listar(@PathVariable(value="album", required = false) String album)
     {
         if (album != null) {
@@ -122,7 +121,7 @@ public class AlbumController
 					)
  
 	})  	
-    @PutMapping(value={"/insere"})
+    @PutMapping(value={"/album"})
     public ResponseEntity<?> inserir(@RequestBody Album album)
     {
         try
@@ -180,7 +179,7 @@ public class AlbumController
 					)
  
 	}) 	
-    @PatchMapping(value={"/altera"})
+    @PatchMapping(value={"/album"})
     public ResponseEntity<?> alterar(@RequestBody Album album)
     {
         try
@@ -237,7 +236,7 @@ public class AlbumController
 					)
  
 	}) 	
-    @DeleteMapping(value={"/deleta/{id_album}"})
+    @DeleteMapping(value={"/album/{id_album}"})
     public ResponseEntity<?> deletar(@PathVariable(value="id_album") Integer id_album)
     {
         Album a;
@@ -298,7 +297,6 @@ public class AlbumController
         	
         	if (albumService.findByNome(c.getCollectionName()).isEmpty()) 
         		albumService.addAlbum(a);
-				
         }	
 
     }
@@ -323,16 +321,7 @@ public class AlbumController
              }else {
              	return a;
              }
-             
-            
-             /*}else if (!musica.equalsIgnoreCase("")){	
-            	result = (String)restTemplate.getForObject(URL_ITUNES_MUSICA+musica, String.class);
-            	TrackReturn artistas = (TrackReturn)gson.fromJson(result, TrackReturn.class);
-            	return artistas;
-            }else {
-            	return a;
-            }*/
-            
+          
         }
         catch(Exception e)
         {
